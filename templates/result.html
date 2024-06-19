@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Matching Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .result {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .song-info {
+            margin-bottom: 10px;
+        }
+        .song-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .match-info {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Song Matching Result</h1>
+        {% for song, matches in result.items() %}
+        <div class="result">
+            <div class="song-info">
+                <p class="song-title">{{ song }}</p>
+            </div>
+            {% if matches is string %}
+            <p>{{ matches }}</p>
+            {% else %}
+            {% for match, time_ranges in matches.items() %}
+            <div class="match-info">
+                <p><strong>Match:</strong> {{ match }}</p>
+                {% for time_range in time_ranges %}
+                <!-- <p><strong>Time Range:</strong> {{ time_range }}</p> -->
+                {% endfor %}
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
