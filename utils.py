@@ -30,7 +30,11 @@ def send_email_result(result):
     msg['To'] = receiver_email
     msg['Subject'] = "Processing Result"
 
-    body = f"Processing result: {result}"
+    uploaded_song = list(result.keys())[0]
+    match = list(result.values())[0]
+    match_key = list(match.keys())[0]
+
+    body = f"Uploaded song: {uploaded_song}\nMatch: {match_key}"
     msg.attach(MIMEText(body, 'plain'))
 
     with smtplib.SMTP('smtp.gmail.com', 587) as server: 
