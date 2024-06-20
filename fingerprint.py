@@ -1,6 +1,7 @@
 import hashlib
 from audiomatch.fingerprints import calc
 
+
 class FingerprintHandler:
 
     def fingerprint_exists(self, cursor, hashed_fingerprint):

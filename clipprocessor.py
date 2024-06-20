@@ -7,11 +7,12 @@ from computesimilarity import ComputeSimilarityFeatures
 from featureextractor import HashingHelper
 import sqlite3
 
+
 class ClipProcessor:
     def __init__(self, file_path, songs_dir):
         self.file_path = file_path
         self.songs_dir = songs_dir
-        self.database_handler = DatabaseHandler() 
+        self.database_handler = DatabaseHandler()
         self.fingerprint_handler = FingerprintHandler()
         self.similarity_features_computer = ComputeSimilarityFeatures(self.songs_dir)
 
@@ -25,17 +26,34 @@ class ClipProcessor:
             duration = self.get_clip_duration(clip_file)
             for start_time in range(0, duration, 12):
                 clip_part = clip_file.with_suffix(f".part{start_time}.mp3")
-                subprocess.run(["ffmpeg", "-i", str(clip_file), "-ss", str(start_time), "-t", "12", str(clip_part)])
+                subprocess.run(
+                    [
+                        "ffmpeg",
+                        "-i",
+                        str(clip_file),
+                        "-ss",
+                        str(start_time),
+                        "-t",
+                        "12",
+                        str(clip_part),
+                    ]
+                )
                 fingerprint = self.fingerprint_handler.generate_fingerprint(clip_part)
                 match = self.find_match(cursor, fingerprint)
                 if match:
                     song_name = match[1]
                     start_timestamp = match[3]
-                    end_timestamp = self.add_timestamps(start_timestamp, self.calculate_clip_length(clip_part))
+                    end_timestamp = self.add_timestamps(
+                        start_timestamp, self.calculate_clip_length(clip_part)
+                    )
                     if song_name in matching_timestamps:
-                        matching_timestamps[song_name].append((start_timestamp, end_timestamp))
+                        matching_timestamps[song_name].append(
+                            (start_timestamp, end_timestamp)
+                        )
                     else:
-                        matching_timestamps[song_name] = [(start_timestamp, end_timestamp)]
+                        matching_timestamps[song_name] = [
+                            (start_timestamp, end_timestamp)
+                        ]
                 os.remove(clip_part)
 
             if matching_timestamps:
@@ -61,7 +79,15 @@ class ClipProcessor:
                 result = {}
                 for song_name, timestamps in merged_timestamps.items():
                     if timestamps:
-                        filtered_timestamps = [(start, end) for start, end in timestamps if (self.convert_to_seconds(end) - self.convert_to_seconds(start)) >= 15]
+                        filtered_timestamps = [
+                            (start, end)
+                            for start, end in timestamps
+                            if (
+                                self.convert_to_seconds(end)
+                                - self.convert_to_seconds(start)
+                            )
+                            >= 15
+                        ]
                         if filtered_timestamps:
                             result[song_name] = [
                                 f"{start} to {end}"
@@ -71,9 +97,15 @@ class ClipProcessor:
                 if result:
                     return {clip_name: result}
 
-            best_match_song, max_similarity_score = self.similarity_features_computer.match_clip_with_songs(str(clip_file))
+            best_match_song, max_similarity_score = (
+                self.similarity_features_computer.match_clip_with_songs(str(clip_file))
+            )
             if best_match_song:
-                return {clip_name: {best_match_song: f"Best match with similarity score {max_similarity_score}"}}
+                return {
+                    clip_name: {
+                        best_match_song: f"Best match with similarity score {max_similarity_score}"
+                    }
+                }
             else:
                 return {clip_name: "No match found for the provided clip."}
 
@@ -84,21 +116,34 @@ class ClipProcessor:
             self.database_handler.close()
 
     def get_clip_duration(self, clip_file):
-        duration_output = subprocess.check_output(["ffprobe", "-i", str(clip_file), "-show_entries", "format=duration", "-v", "quiet", "-of", "csv=p=0"])
+        duration_output = subprocess.check_output(
+            [
+                "ffprobe",
+                "-i",
+                str(clip_file),
+                "-show_entries",
+                "format=duration",
+                "-v",
+                "quiet",
+                "-of",
+                "csv=p=0",
+            ]
+        )
         duration = float(duration_output.strip())
         return int(duration)
 
     def find_match(self, cursor, fingerprint):
-        fingerprint_str = ','.join(map(str, fingerprint))
-        fingerprint_elements = fingerprint_str.split(',')
+        fingerprint_str = ",".join(map(str, fingerprint))
+        fingerprint_elements = fingerprint_str.split(",")
 
         try:
-            # cursor = connection.cursor()
             cursor.execute("SELECT * FROM fingerprints")
             rows = cursor.fetchall()
 
             for row in rows:
-                fingerprint_in_db = row[4]  # Assuming hashed fingerprint is in column index 4
+                fingerprint_in_db = row[
+                    4
+                ]  
                 hashed_fingerprint = HashingHelper.decode(fingerprint_in_db)
 
                 for element in fingerprint_elements:
@@ -111,11 +156,27 @@ class ClipProcessor:
             print("Error:", e)
 
     def add_timestamps(self, start_timestamp, clip_length):
-        total_seconds = sum(int(t.split(':')[i]) * (60 ** (1 - i)) for i in range(2) for t in (start_timestamp, clip_length))
+        total_seconds = sum(
+            int(t.split(":")[i]) * (60 ** (1 - i))
+            for i in range(2)
+            for t in (start_timestamp, clip_length)
+        )
         return f"{total_seconds // 60}:{total_seconds % 60:02d}"
 
     def calculate_clip_length(self, clip_part):
-        duration_output = subprocess.check_output(["ffprobe", "-i", str(clip_part), "-show_entries", "format=duration", "-v", "quiet", "-of", "csv=p=0"])
+        duration_output = subprocess.check_output(
+            [
+                "ffprobe",
+                "-i",
+                str(clip_part),
+                "-show_entries",
+                "format=duration",
+                "-v",
+                "quiet",
+                "-of",
+                "csv=p=0",
+            ]
+        )
         duration = float(duration_output.strip())
         duration_minutes = int(duration) // 60
         duration_seconds = int(duration) % 60
@@ -123,6 +184,5 @@ class ClipProcessor:
         return duration_format
 
     def convert_to_seconds(self, timestamp):
-        minutes, seconds = map(int, timestamp.split(':'))
+        minutes, seconds = map(int, timestamp.split(":"))
         return minutes * 60 + seconds
-

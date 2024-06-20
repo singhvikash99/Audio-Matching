@@ -10,6 +10,7 @@ from python_speech_features import mfcc
 #     def extract_feature(self, audio_file):
 #         pass
 
+
 class HashingHelper:
     @staticmethod
     def hash_feature(feature):
@@ -24,6 +25,7 @@ class HashingHelper:
         feature = decoded_str.split(",")
         return feature
 
+
 # class FeatureExtractorBase(FeatureExtractorStrategy):
 #     def load_audio_segment(self, audio_file):
 #         return librosa.load(audio_file, sr=None)
@@ -36,10 +38,12 @@ class HashingHelper:
 #     #     count = cursor.fetchone()[0]
 #     #     return count > 0
 
+
 class MFCCExtractor:
     def extract_feature(self, audio_file):
         audio_array = np.array(audio_file.get_array_of_samples())
         return mfcc(audio_array, samplerate=audio_file.frame_rate, nfft=2048)
+
 
 class TempoExtractor:
     def extract_feature(self, audio_file):
@@ -49,6 +53,7 @@ class TempoExtractor:
         tempo, _ = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr)
         return tempo
 
+
 class ChromaExtractor:
     def extract_feature(self, audio_file):
         y = np.array(audio_file.get_array_of_samples(), dtype=np.float32)
@@ -57,6 +62,7 @@ class ChromaExtractor:
         if chroma.size == 0:
             return np.zeros((1, 12))
         return chroma
+
 
 class SpectralContrastExtractor:
     def extract_feature(self, audio_file):

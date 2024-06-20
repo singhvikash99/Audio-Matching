@@ -5,11 +5,11 @@ from database import DatabaseHandler
 from fingerprint import FingerprintHandler
 from featureextractor import HashingHelper
 
+
 class SongProcessor:
     def __init__(self, database_handler=None, fingerprint_handler=None):
         self.database_handler = database_handler or DatabaseHandler()
         self.fingerprint_handler = fingerprint_handler or FingerprintHandler()
-        
 
     def process_song(self, song_path):
         song_file = Path(song_path)
@@ -20,11 +20,11 @@ class SongProcessor:
             self.generate_and_save_fingerprints(cursor, song_file)
 
             self.database_handler.commit()
-        
+
         except Exception as e:
             print("Error processing song:", e)
             self.database_handler.rollback()
-            raise 
+            raise
         finally:
             self.database_handler.close()
 
@@ -50,28 +50,33 @@ class SongProcessor:
 
             if self.fingerprint_handler.fingerprint_exists(cursor, hashed_fingerprint):
                 os.remove(song_part)
-                continue  
+                continue
 
             cursor.execute(
                 "INSERT INTO fingerprints (song_id, time_offset, timestamp, hashed_fingerprint) VALUES (?, ?, ?, ?)",
-                (song_file.stem, start_time, self.format_timestamp(start_time // 60, start_time % 60), hashed_fingerprint),
+                (
+                    song_file.stem,
+                    start_time,
+                    self.format_timestamp(start_time // 60, start_time % 60),
+                    hashed_fingerprint,
+                ),
             )
             os.remove(song_part)
-    
+
     def extract_and_save_vocal_features(self, cursor, song_file):
         vocal_segment = self.vocal_extractor.extract_vocals(song_file)
 
         feature_values = {
-            'mfcc': None,
-            'tempo': None,
-            'chroma': None,
-            'spectral_contrast': None
+            "mfcc": None,
+            "tempo": None,
+            "chroma": None,
+            "spectral_contrast": None,
         }
-        
+
         for feature_type, extractor in self.feature_extractors.items():
             feature_value = extractor.extract_feature(vocal_segment)
             hashed_feature = HashingHelper.hash_feature(feature_value)
-            
+
             if not self.feature_exists(cursor, hashed_feature):
                 feature_values[feature_type] = hashed_feature
 
@@ -80,11 +85,11 @@ class SongProcessor:
             (
                 song_file.stem + "_vocals",
                 song_file.name + "_vocals",
-                feature_values['mfcc'],
-                feature_values['tempo'],
-                feature_values['chroma'],
-                feature_values['spectral_contrast']
-            )
+                feature_values["mfcc"],
+                feature_values["tempo"],
+                feature_values["chroma"],
+                feature_values["spectral_contrast"],
+            ),
         )
         self.vocal_extractor.remove_extracted_vocals(song_file)
 
