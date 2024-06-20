@@ -22,12 +22,12 @@ def list_uploaded_songs():
 
 def send_email_result(result):
     sender_email = os.getenv("SENDER_EMAIL")
-    receiver_email = os.getenv("RECEIVER_EMAIL")
+    receiver_email = os.getenv("RECEIVER_EMAIL").split(",")
     password = os.getenv("EMAIL_PASSWORD")
 
     msg = MIMEMultipart()
     msg["From"] = sender_email
-    msg["To"] = receiver_email
+    msg["To"] = ", ".join(receiver_email)
     msg["Subject"] = "Processing Result"
 
     uploaded_song = list(result.keys())[0]
