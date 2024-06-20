@@ -12,6 +12,6 @@ class FingerprintHandler:
         count = cursor.fetchone()[0]
         return count > 0
 
-    def generate_fingerprint(self, file_path):
-        fingerprint = calc(file_path)
+    def generate_fingerprint(self, file_path, length: int = 12):
+        fingerprint = calc(file_path, length)
         return fingerprint
