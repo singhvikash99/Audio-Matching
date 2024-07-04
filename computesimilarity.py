@@ -114,6 +114,6 @@ class ComputeSimilarityFeatures:
                 match_found = True
 
         if not match_found:
-            return "No match found", -1
+            return None, None
 
         return best_match_song, max_similarity_score

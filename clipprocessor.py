@@ -6,6 +6,7 @@ from fingerprint import FingerprintHandler
 from computesimilarity import ComputeSimilarityFeatures
 from featureextractor import HashingHelper
 import sqlite3
+from fastdtw_processor import FastDTWProcessor
 
 
 class ClipProcessor:
@@ -15,6 +16,7 @@ class ClipProcessor:
         self.database_handler = DatabaseHandler()
         self.fingerprint_handler = FingerprintHandler()
         self.similarity_features_computer = ComputeSimilarityFeatures(self.songs_dir)
+        self.fastdtw_processor = FastDTWProcessor('clips', self.songs_dir)
 
     def process_clips(self):
         cursor = self.database_handler.connect()
@@ -94,20 +96,35 @@ class ClipProcessor:
                                 for start, end in filtered_timestamps
                             ]
 
+                # if result:
+                #     return {clip_name: result}
                 if result:
-                    return {clip_name: result}
+                    return {clip_name: list(result.keys())[0]}
 
             best_match_song, max_similarity_score = (
                 self.similarity_features_computer.match_clip_with_songs(str(clip_file))
             )
+            # if best_match_song:
+            #     return {
+            #         clip_name: {
+            #             best_match_song: f"Best match with similarity score {max_similarity_score}"
+            #         }
+            #     }
             if best_match_song:
                 return {
-                    clip_name: {
-                        best_match_song: f"Best match with similarity score {max_similarity_score}"
-                    }
+                    clip_name: best_match_song
                 }
+            # else:
+            #     return {clip_name: "No match found for the provided clip."}
+            # else:
+            #     # Use FastDTWProcessor if no match is found using the above methods
+            #     fastdtw_results = self.fastdtw_processor.process_clips()
+            #     return {clip_name: fastdtw_results[clip_name]}
             else:
-                return {clip_name: "No match found for the provided clip."}
+
+                fastdtw_results = self.fastdtw_processor.process_clips()
+                print(fastdtw_results)
+                return {clip_name: fastdtw_results.get(clip_name, {"No match found": float('inf')})}
 
         except Exception as e:
             print("81")

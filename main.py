@@ -75,6 +75,13 @@ def match_song():
     uploaded_file.save(uploaded_file_path)
     os.makedirs("./demucs_output/htdemucs", exist_ok=True)
 
+    # clip_processor = ClipProcessor(file_path=uploaded_file_path, songs_dir="./songs")
+    # try:
+    #     result = clip_processor.process_clips()
+    #     return jsonify(result), 200
+    # except Exception as e:
+    #     return jsonify({"error": str(e)}), 500
+
     try:
         songs_dir = "./songs"
         process_clips_task.delay(uploaded_file_path, songs_dir)
